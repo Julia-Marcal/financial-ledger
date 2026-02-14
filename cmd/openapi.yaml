@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  title: Financial Ledger API
+  version: 1.0.0
+  description: |
+    Simple financial ledger service.
+    The account balance is always derived from the sum of transactions.
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+
+  /accounts:
+    post:
+      summary: Create a new account
+      operationId: createAccount
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '500':
+          description: Internal server error
+
+  /accounts/{accountId}:
+    get:
+      summary: Get account by ID
+      operationId: getAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Account found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Account not found
+
+  /accounts/{accountId}/balance:
+    get:
+      summary: Get account balance
+      operationId: getBalance
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Current account balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+        '404':
+          description: Account not found
+
+  /accounts/{accountId}/statement:
+    get:
+      summary: Get account statement
+      operationId: getStatement
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+
+      responses:
+        '200':
+          description: Account statement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statement'
+        '404':
+          description: Account not found
+
+  /transactions:
+    post:
+      summary: Create a transaction (credit or debit)
+      operationId: createTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+      responses:
+        '201':
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Invalid request
+        '404':
+          description: Account not found
+        '422':
+          description: Insufficient funds
+        '500':
+          description: Internal server error
+
+components:
+
+  schemas:
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - createdAt
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        accountId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ credit, debit ]
+        amount:
+          type: integer
+          format: int64
+          description: Amount in cents
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - accountId
+        - type
+        - amount
+        - createdAt
+
+    CreateTransactionRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ credit, debit ]
+        amount:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Amount in cents
+      required:
+        - accountId
+        - type
+        - amount
+
+    Balance:
+      type: object
+      properties:
+        accountId:
+          type: string
+          format: uuid
+        balance:
+          type: integer
+          format: int64
+          description: Current balance in cents
+      required:
+        - accountId
+        - balance
+
+    Statement:
+      type: object
+      properties:
+        accountId:
+          type: string
+          format: uuid
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        balance:
+          type: integer
+          format: int64
+          description: Balance calculated from returned transactions
+      required:
+        - accountId
+        - transactions
+        - balance

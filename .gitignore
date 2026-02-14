@@ -1,0 +1,14 @@
+# Ignore local environment file
+.env
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+
+# Go build artifacts
+bin/
+*.exe
+*.exe~
+*.test
+*.out
+.idea/
