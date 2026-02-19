@@ -60,3 +60,17 @@ func Disconnect(ctx context.Context, client *mongo.Client) error {
 	defer cancel()
 	return client.Disconnect(dctx)
 }
+
+// WithClient centralizes Connect
+func WithClient(ctx context.Context, fn func(*mongo.Client) error) error {
+	client, err := Connect(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = Disconnect(context.Background(), client)
+	}()
+
+	return fn(client)
+}
