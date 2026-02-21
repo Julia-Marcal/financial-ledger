@@ -15,14 +15,14 @@ func InsertAccount(ctx context.Context, acc model.Account) error {
 
 		doc := bson.M{
 			"_id":       acc.ID,
-			"createdAt": acc.CreatedAt,
+			"createdAt": acc.Audit.CreatedAt,
 			"audit": bson.M{
-				"created": bson.M{"timestamp": acc.Audit.Created.Timestamp, "userId": acc.Audit.Created.UserID},
+				"created": bson.M{"timestamp": acc.Audit.CreatedAt, "userId": acc.Audit.CreatedBy},
 			},
 		}
 
-		if !acc.Audit.Updated.Timestamp.IsZero() || acc.Audit.Updated.UserID != "" {
-			doc["audit"].(bson.M)["updated"] = bson.M{"timestamp": acc.Audit.Updated.Timestamp, "userId": acc.Audit.Updated.UserID}
+		if !acc.Audit.UpdatedAt.IsZero() || acc.Audit.UpdatedBy != "" {
+			doc["audit"].(bson.M)["updated"] = bson.M{"timestamp": acc.Audit.UpdatedAt, "userId": acc.Audit.UpdatedBy}
 		}
 
 		_, err := coll.InsertOne(ctx, doc)

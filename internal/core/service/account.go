@@ -12,15 +12,15 @@ func CreateAccount(ctx context.Context, acc model.Account) (model.Account, error
 	if acc.ID == "" {
 		acc.ID = model.NewID()
 	}
-	if acc.CreatedAt.IsZero() {
-		acc.CreatedAt = time.Now().UTC()
+	if acc.Audit.CreatedAt.IsZero() {
+		acc.Audit.CreatedAt = time.Now().UTC()
 	}
 
-	if acc.Audit.Created.Timestamp.IsZero() {
-		acc.Audit.Created.Timestamp = acc.CreatedAt
+	if acc.Audit.CreatedAt.IsZero() {
+		acc.Audit.CreatedAt = acc.Audit.CreatedAt
 	}
-	if acc.Audit.Updated.Timestamp.IsZero() {
-		acc.Audit.Updated.Timestamp = acc.Audit.Created.Timestamp
+	if acc.Audit.UpdatedAt.IsZero() {
+		acc.Audit.UpdatedAt = acc.Audit.CreatedAt
 	}
 
 	err := mongodb.InsertAccount(ctx, acc)
