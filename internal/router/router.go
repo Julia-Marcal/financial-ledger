@@ -18,11 +18,6 @@ func Router() *http.Server {
 	{
 		v1 := api.Group("/v1")
 		{
-			v1.GET("/", func(c *gin.Context) {
-				time.Sleep(1 * time.Second)
-				c.String(http.StatusOK, "Welcome Gin Server")
-			})
-
 			accounts := v1.Group("/accounts")
 			{
 				accounts.POST("/", handler.CreateAccount)
@@ -30,6 +25,12 @@ func Router() *http.Server {
 				accounts.GET("/:accountId", handler.GetAccount)
 				accounts.GET("/:accountId/balance", handler.GetBalance)
 				accounts.GET("/:accountId/statement", handler.GetStatement)
+			}
+
+			transactions := v1.Group("/transactions")
+			{
+				transactions.POST("/", handler.CreateTransaction)
+				transactions.GET("/", handler.GetTransactions)
 			}
 		}
 	}

@@ -10,6 +10,8 @@ type AuditEntry struct {
 
 // Audit groups created and updated entries for a document.
 type Audit struct {
-	Created AuditEntry `json:"created" bson:"created"`
-	Updated AuditEntry `json:"updated,omitempty" bson:"updated,omitempty"`
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
+	CreatedBy string    `json:"createdBy" bson:"createdBy"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
+	UpdatedBy string    `json:"updatedBy" bson:"updatedBy"`
 }
