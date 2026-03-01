@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"financial-ledger/internal/core/model"
-	"financial-ledger/internal/infrastructure/mongodb"
+	"financial-ledger/internal/infraestructure/mongodb"
 )
 
 func CreateTransaction(ctx context.Context, tx model.Transaction) (model.Transaction, error) {

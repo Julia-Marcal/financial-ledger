@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"financial-ledger/internal/infrastructure/server"
+	"financial-ledger/internal/infraestructure/server"
 	"log/slog"
 	"os"
 	"os/signal"

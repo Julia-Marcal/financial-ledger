@@ -2,12 +2,14 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
 	"financial-ledger/internal/core/model"
 	"financial-ledger/internal/core/service"
 	"financial-ledger/internal/dto"
+	"financial-ledger/internal/infraestructure/rabbitmq"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,15 +29,21 @@ func CreateTransaction(c *gin.Context) {
 		CreatedAt: time.Now().UTC(),
 	}
 
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	_, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	created, err := service.CreateTransaction(ctx, tx)
+	body, err := json.Marshal(tx)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "insert failed", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "serialization failed", "details": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, created)
+
+	err = rabbitmq.PublishTransaction("transactions", "created", body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "publish failed", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusAccepted, gin.H{"status": "published"})
 }
 
 func GetTransactions(c *gin.Context) {

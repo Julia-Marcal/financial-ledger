@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
-	"financial-ledger/internal/infrastructure/mongodb"
+
+	"financial-ledger/internal/infraestructure/mongodb"
+	"financial-ledger/internal/infraestructure/rabbitmq"
 	"financial-ledger/internal/router"
 	"log/slog"
 	"net/http"
@@ -10,10 +12,15 @@ import (
 )
 
 func Start(ctx context.Context) error {
-	cleanup, err := initMongo(ctx)
+	cleanup, err := InitMongo(ctx)
 	if err != nil {
 		slog.Debug("failed to initialize mongodb", "error", err)
 		cleanup = nil
+	}
+
+	if err := rabbitmq.InitRabbitMQ(); err != nil {
+		slog.Error("failed to initialize rabbitmq", "error", err)
+		return err
 	}
 
 	// Initialize and start the HTTP server
@@ -46,12 +53,13 @@ func Start(ctx context.Context) error {
 	if cleanup != nil {
 		cleanup()
 	}
+	rabbitmq.CloseRabbitMQ()
 
 	slog.Debug("Graceful shutdown complete")
 	return nil
 }
 
-func initMongo(parentCtx context.Context) (func(), error) {
+func InitMongo(parentCtx context.Context) (func(), error) {
 	connCtx, cancel := context.WithTimeout(parentCtx, 5*time.Second)
 	client, err := mongodb.Connect(connCtx)
 	cancel()
