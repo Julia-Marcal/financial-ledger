@@ -38,7 +38,7 @@ func CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	err = rabbitmq.PublishTransaction("transactions", "created", body)
+	err = rabbitmq.PublishTransaction("transactions", "transactions.created", body)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "publish failed", "details": err.Error()})
 		return
