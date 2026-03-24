@@ -10,21 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func InsertTransaction(ctx context.Context, tx model.Transaction) error {
-	return WithClient(ctx, func(client *mongo.Client) error {
-		coll := client.Database("ledger").Collection("transactions")
-		doc := bson.M{
-			"_id":       tx.ID,
-			"accountId": tx.AccountID,
-			"type":      tx.Type,
-			"amount":    tx.Amount,
-			"createdAt": tx.CreatedAt,
-		}
-		_, err := coll.InsertOne(ctx, doc)
-		return err
-	})
-}
-
 func ListTransactionsWithFilter(ctx context.Context, accountId string, from, to *time.Time) ([]model.Transaction, error) {
 	filter := bson.M{}
 	if accountId != "" {

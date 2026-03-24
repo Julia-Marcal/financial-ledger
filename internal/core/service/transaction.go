@@ -8,17 +8,6 @@ import (
 	"financial-ledger/internal/infraestructure/mongodb"
 )
 
-func CreateTransaction(ctx context.Context, tx model.Transaction) (model.Transaction, error) {
-	if tx.ID == "" {
-		tx.ID = model.NewID()
-	}
-	if tx.CreatedAt.IsZero() {
-		tx.CreatedAt = time.Now().UTC()
-	}
-	err := mongodb.InsertTransaction(ctx, tx)
-	return tx, err
-}
-
 func ListTransactions(ctx context.Context, accountId string, from, to *time.Time) ([]model.Transaction, error) {
 	return mongodb.ListTransactionsWithFilter(ctx, accountId, from, to)
 }
