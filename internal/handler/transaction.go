@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -11,8 +10,6 @@ import (
 	"financial-ledger/internal/core/service"
 	"financial-ledger/internal/dto"
 	"financial-ledger/internal/infraestructure/rabbitmq"
-
-	"crypto/rand"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,10 +21,10 @@ func CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	idempKey := make([]byte, 16)
-	_, err := rand.Read(idempKey)
-	if err != nil {
-		panic(err)
+	idempotencyKey := c.GetHeader("Idempotency-Key")
+	if idempotencyKey == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Idempotency-Key header is required"})
+		return
 	}
 
 	tx := model.Transaction{
@@ -35,7 +32,7 @@ func CreateTransaction(c *gin.Context) {
 		Type:           req.Type,
 		Amount:         req.Amount,
 		CreatedAt:      time.Now().UTC(),
-		IdempotencyKey: hex.EncodeToString(idempKey),
+		IdempotencyKey: idempotencyKey,
 	}
 
 	_, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
