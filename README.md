@@ -1,159 +1,90 @@
-# Ledger API
+# Financial Ledger
 
-Ledger API is a RESTful service built with Go and MongoDB for managing
-financial transactions, accounts, and balances, following clean
-architecture principles and running with Docker.
+An event-driven financial ledger service focused on consistency, idempotency, and distributed architecture.
 
-A scalable REST API built with **Go (Golang)** using **MongoDB** as the
-database. This project follows clean architecture principles and is
-fully containerized with Docker.
+---
 
-------------------------------------------------------------------------
+## Overview
 
-## 🚀 Tech Stack
+This project simulates a real-world financial transaction processing system, ensuring:
 
--   Go (Golang)
--   MongoDB
--   Docker & Docker Compose
--   Clean Architecture
--   RESTful API
--   OpenAPI (Swagger ready)
+- Data consistency with an **immutable ledger pattern** — balance always derived from transactions
+- **Idempotency** via idempotency key, preventing duplicate processing
+- **Asynchronous and fault-tolerant** processing with RabbitMQ
+- Foundation for evolution into a microservices architecture
 
-------------------------------------------------------------------------
+---
 
-## 📁 Project Structure
+## Tech Stack
 
-    ledger-api/
-    │
-    ├── cmd/
-    │   └── api/
-    │       └── main.go
-    │── docs/
-    |
-    ├── internal/
-    │   ├── database/
-    │   ├── handlers/
-    │   ├── services/
-    │   ├── repositories/
-    │   └── models/
-    │
-    ├── migrations/
-    │   └── ...
-    │
-    ├── Dockerfile
-    ├── docker-compose.yml
-    └── README.md
+- **Go** + **Gin** — HTTP API
+- **MongoDB** — primary database
+- **RabbitMQ** — messaging with publisher confirms and retry
+- **Docker** — containerization
 
-------------------------------------------------------------------------
+---
 
-## 🐳 Running with Docker
+## Getting Started
 
-### 1️⃣ Build and start services
+**1. Start MongoDB:**
 
-``` bash
-docker compose up --build
+```bash
+docker compose up -d
 ```
 
-This will start:
+**2. Set environment variables:**
 
--   MongoDB on port `27017`
--   API on port `8080`
-
-------------------------------------------------------------------------
-
-## 🔗 Environment Variables
-
-  Variable    Description
-  ----------- -------------------------
-  MONGO_URI   Mongo connection string
-  PORT        API port (default 8080)
-
-Example:
-
-    MONGO_URI=mongodb://root:rootpassword@mongodb:27017/ledger?authSource=admin
-
-------------------------------------------------------------------------
-
-## 📦 MongoDB Setup
-
-Mongo runs as a service inside Docker.
-
-If using initialization scripts:
-
-    migrations/init.js
-
-These scripts will:
-
--   Create collections
--   Create indexes
--   Seed initial data
-
-------------------------------------------------------------------------
-
-## 🧠 Migrations Strategy
-
-Since MongoDB is schema-less:
-
--   Indexes are created on startup
--   Structural changes are handled via Go migrations
--   Migration versions can be stored in a `migrations` collection
-
-Example (Go migration):
-
-``` go
-collection.Indexes().CreateOne(ctx, mongo.IndexModel{
-    Keys: bson.D{{Key: "email", Value: 1}},
-    Options: options.Index().SetUnique(true),
-})
+```bash
+export MONGO_URI=mongodb://root:rootpassword@localhost:27017/ledger?authSource=admin
+export RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+export PORT=8080
 ```
 
-------------------------------------------------------------------------
+**3. Run the API:**
 
-## 📖 API Documentation
-
-You can expose OpenAPI/Swagger documentation at:
-
-    /swagger/index.html
-
-(If Swagger is configured in the project)
-
-------------------------------------------------------------------------
-
-## 🛠 Development
-
-### Run locally without Docker
-
-1.  Start MongoDB
-2.  Export environment variables
-3.  Run:
-
-``` bash
+```bash
 go run cmd/api/main.go
 ```
 
-------------------------------------------------------------------------
+The API will be available at `http://localhost:8080`.
 
-## 📌 Production Considerations
+---
 
--   Use a managed MongoDB (Atlas / DocumentDB)
--   Enable authentication and TLS
--   Add structured logging
--   Add health checks
--   Add graceful shutdown
--   Add CI/CD pipeline
+## Endpoints
 
-------------------------------------------------------------------------
+Base: `/api/v1`
 
-## 🧪 Testing
+| Method | Route                            | Description          |
+|--------|----------------------------------|----------------------|
+| POST   | `/accounts/`                     | Create account       |
+| GET    | `/accounts/`                     | List accounts        |
+| GET    | `/accounts/:accountId`           | Get account          |
+| GET    | `/accounts/:accountId/balance`   | Get balance          |
+| GET    | `/accounts/:accountId/statement` | Get statement        |
+| POST   | `/transactions/`                 | Create transaction   |
+| GET    | `/transactions/`                 | List transactions    |
 
-Run:
+---
 
-``` bash
-go test ./...
-```
+## Roadmap
 
-------------------------------------------------------------------------
+- [x] Transactions API (credit and debit)
+- [x] Idempotency key
+- [x] Database persistence
+- [x] Event publishing to RabbitMQ
+- [ ] Outbox Pattern
+- [ ] Publishing worker
+- [ ] Event consumer
+- [ ] Retry + Dead Letter Queue (DLQ)
+- [ ] Split into `ledger-service` and `balance-service`
+- [ ] Service communication exclusively via events
+- [ ] Structured logging (JSON)
+- [ ] Metrics with Prometheus + Grafana
+- [ ] Deploy on Kubernetes (EKS)
+- [ ] AWS integration (RDS, Redis, SQS)
 
-## 📜 License
+---
+
+## License
 
 MIT
